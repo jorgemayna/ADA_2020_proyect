@@ -248,6 +248,89 @@ pair<vector<pair<int, int>>, pair<double,bool>> memoizado(vector<pair<pair<int,i
   return make_pair(ma_vec[d.M.size()-1][d.m.size()-1],make_pair(peso,d.direccion));
 }
 
+pair<vector<pair<int, int>>, pair<double,bool>> p_dinamica(vector<pair<pair<int,int>,int >> A,vector<pair<pair<int,int>,int >> B){
+  auto d = dirrecion(A,B);  
+  vector<vector<vector<pair<int, int>>>> ma_vec;
+  vector<vector<double>> memo;
+  for(int i = 0;i <d.M.size();i++){
+    ma_vec.push_back(vector<vector<pair<int, int>>> (d.m.size(),vector<pair<int, int>>()));
+    memo.push_back(vector<double> (d.m.size(),-1));
+  }  
+  
+  for(int i=0;i<d.M.size();i++){    
+    double cont1 = 0;
+    for(int z=0; z<=i ;z++){
+      cont1 = cont1 + d.M[z].second;      
+      ma_vec[i][0].push_back(make_pair(z,0));      
+    }
+    memo[i][0] = cont1 / (double)d.m[0].second;    
+        
+  }
+  for(int i = 0;i<d.m.size();i++){
+    if(!dividir(d.M[0].second,i+1)){
+      memo[0][i] = INF;
+      continue;  
+    }
+    double cont2 = 0;
+    for(int z=0; z<=i ;z++){      
+      cont2 = cont2 + d.m[z].second;      
+      ma_vec[0][i].push_back(make_pair(0,z));
+    }
+    memo[0][i] = (double)d.M[0].second / cont2;
+  }
+  
+  for(int j=1;j<d.m.size();j++){
+    for(int i=1;i<d.M.size();i++){
+
+      double uno = INF;
+      vector<pair<int, int>> op1;  
+      for(int z=0; z<=j-1; z++){
+        if(!dividir(d.M[i].second,j-z))continue;
+        double temp = 0;
+        vector<pair<int, int>> v_temp;
+        for(int zz = z+1;zz<=j;zz++){
+          temp = temp + d.m[zz].second;      
+          v_temp.push_back(make_pair(i,zz));
+        }  
+        temp = memo[i-1][z] + ((double)d.M[i].second / temp);    
+        if(temp<uno){
+          uno=temp;
+          op1 = ma_vec[i-1][z];
+          op1.insert(op1.end(),v_temp.begin(),v_temp.end());
+        }
+      }
+
+      double dos = INF;
+      vector<pair<int, int>> op2;  
+      for(int z=0; z<=i-2; z++){    
+        double temp = 0;
+        vector<pair<int, int>> v_temp;
+        for(int zz = z+1;zz<=i;zz++){
+          temp = temp + d.M[zz].second;
+          v_temp.push_back(make_pair(zz,j));
+        }    
+        temp = memo[z][j-1] + (temp / (double)d.m[j].second);
+        if(temp<dos){
+          dos=temp;
+          op2 = ma_vec[z][j-1];
+          op2.insert(op2.end(),v_temp.begin(),v_temp.end());
+        }
+      }
+
+      if(uno<=dos){
+        ma_vec[i][j] = op1;
+        memo[i][j] = uno;
+      }else{
+        ma_vec[i][j] = op2;
+        memo[i][j] = dos;  
+      }
+
+    }
+  }
+
+  return make_pair(ma_vec[d.M.size()-1][d.m.size()-1],make_pair(memo[d.M.size()-1][d.m.size()-1],d.direccion));
+}
+
 int main(){
 
   string a,b;
@@ -269,7 +352,8 @@ int main(){
 
   //auto match = greedy(A,B);
   //auto match = recursivo(A,B);
-  auto match = memoizado(A,B);
+  //auto match = memoizado(A,B);
+  auto match = p_dinamica(A,B);
   print_matching(match);
 }
 
