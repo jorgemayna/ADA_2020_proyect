@@ -1,0 +1,130 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\selectlanguage{spanish}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage[noend]{algorithmic}
+
+\newenvironment{solution}
+  {\renewcommand\qedsymbol{$\blacksquare$}\begin{proof}[Solución]}
+  {\end{proof}}
+
+%pseudocodigo
+\newcommand{\TITLE}[1]{\item[#1]}
+\renewcommand{\algorithmiccomment}[1]{$/\!/$ \parbox[t]{4.5cm}{\raggedright #1}}
+% ugly hack for for/while
+\newbox\fixbox
+\renewcommand{\algorithmicdo}{\setbox\fixbox\hbox{\ {} }\hskip-\wd\fixbox}
+% end of hack
+%imitando para if
+\renewcommand{\algorithmicthen}{\setbox\fixbox\hbox{\ {} }\hskip-\wd\fixbox}
+\newcommand{\algcost}[2]{\strut\hfill\makebox[1.5cm][l]{#1}\makebox[4cm][l]{#2}}
+
+%piso techo 
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+ 
+ \newenvironment{ejercicio}[2][Ejercicio]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+%If you want to title your bold things something different just make another thing exactly like this but replace "problem" with the name of the thing you want, like theorem or lemma or whatever
+
+\title{Avanze del proyecto}
+\author{Análisis y Diseño de Algoritmos(ADA)\\\\jorge.mayna }
+\date{Junio 2020}
+
+\begin{document}
+
+\maketitle
+\textit{repo : https://github.com/jorgemayna/ADA\_2020\_proyect}
+\section{Introducción}
+Los 2 arreglos de 1s y 0s que recibimos los guardamos como strings y para hallar sus respectivos bloques usamos el siguiente algoritmo:\\
+\begin{algorithmic}[1]
+\TITLE{\textsc{Bloques}$(string\ s ,tamaño\ t)$}
+    \FOR{$i=1$ to $t$}  
+        \IF{s[i] = '1'}
+            \STATE first = i;
+            \WHILE{s[i] = '1'} i++
+            \ENDWHILE
+            \STATE R.push\_back(first, i - 1, i - first+1)
+        \ENDIF
+    \ENDFOR
+    \STATE return R
+\end{algorithmic}
+El algoritmo no solo te retorna cada bloque sino que también su tamaño lo que sera usado posteriormente.
+Los bloques son guardados en los arreglos A[n] y B[m].
+
+\section{Algoritmo voraz}
+Para el algoritmo voraz se optó por el acercamiento mas sencillo, por lo cual no retorna un matching con peso mínimo, pero si retorna un matching valido.
+Para facilitar las cosas asumiremos que la longitud de  A[n] es mayor que la de B[m](En el código en c++ si se valida esto) y que cuando usemos la notación A[i] nos estamos refiriendo al modulo del bloque i en vez de al bloque en si mismo.\\
+\begin{algorithmic}[1]
+\TITLE{\textsc{Greedy}$(Bloques\ A ,Bloques\ B)$}
+\algcost{\textit{cost}}{\textit{times}}
+    \STATE cont = 0
+        \algcost{$c_1$}{$1$}
+    \FOR{$i=1$ to $B.size$  \algcost{$c_2$}{$m+1$}}
+    \STATE matching.push\_back(i,i)
+        \algcost{$c_3$}{$m$}
+    \STATE cont = cont + A[i] / B[i]
+        \algcost{$c_4$}{$m$}
+    \ENDFOR
+    \FOR{$i=B.size+1$ to $A.size$  \algcost{$c_5$}{$n-m+1$}}
+    \STATE matching.push\_back(i,B.size)
+        \algcost{$c_6$}{$n-m$}
+    \STATE cont = cont + A[i] / B[B.size]
+        \algcost{$c_7$}{$n-m$}
+    \ENDFOR
+    \STATE return (matching,cont)
+\end{algorithmic}
+.\\
+En el algoritmo anterior simplemente se separo las operaciones en 2 ciclos "for" para evitar comprobaciones innecesarias usando solo 1.\\
+Sea $T(n)$ el tiempo de ejecución con el tamaño de A como n:\\
+$T(n) = c_1 + c_2(m+1) + c_3(m) + c_4(m) + c_5(n-m+1) + c_6(n-m) + c_7(n-m)$\\
+$T(n) = n(c_5 + c_6 +c_7) + m(c_2 + c_3 + c_4 - c_5 - c_6 - c_7) + c_1+c_2+c_5$\\
+Si le despreciamos las diferencias entre constantes:\\
+$T(n) = n(3c) + 3c = O(n) $\\
+
+
+\section{Recurrencia}
+Siendo A[n] y B[m] los vectores con los bloques de los 2 arrays de 1s y 0s originales, usaremos la notación A[i] para referirnos al modulo del bloque i en vez de al bloque en si mismo.\\
+\textit{NOTA : Para mejor entendimiento separaremos las partes para evitar aglomeración.}\\
+\begin{eqnarray*}
+UNO&=& Min_{z=1}^{z=j-2}(OPT(i-1,z) + A[i]/\sum_{x=z+1}^{x=j}B[x]) \\
+DOS&=& OPT(i-1,j-1) + A[i]/B[j] \\
+TRES&=& Min_{z=1}^{z=i-2}(OPT(z,j-1) + (\sum_{x=z+1}^{x=j}A[x])/B[j] )
+\end{eqnarray*}
+
+\begin{equation*}
+OPT(i,j) =
+\begin{cases}
+A[i]/\sum_{z=1}^{z=j}B[z] & i = 1\\
+(\sum_{z=1}^{z=i}A[z])/B[j] & j=1\\
+Min(UNO,DOS,TRES) & i>1 \text{ and } j>1
+
+\end{cases}
+\end{equation*}
+
+\section{Algoritmo recursivo}
+Para resolver el problema de manera recursiva se optó por el siguiente algoritmo:\\
+\begin{algorithmic}[1]
+\TITLE{\textsc{opt}$(i ,j)$}
+    \IF{i = 0  \algcost{$.$}{$.$}}
+        \STATE cont = SUM(B[i], 1 $\leq$ i $\leq$ j)
+        \STATE Return A[i]/cont
+    \ENDIF
+    \IF{j = 0}
+        \STATE cont = SUM(A[i], 1 $\leq$ i $\leq$ i)
+        \STATE Return cont/[j]
+    \ENDIF
+\end{algorithmic}
+\section{Algoritmo memoizado}
+Para realizar el memoizado lo único que se agrego fue una matriz $n x m$ que guardaba los OPT ya calculados para usarlos posteriormente si se necesitaba.
+\end{document}
