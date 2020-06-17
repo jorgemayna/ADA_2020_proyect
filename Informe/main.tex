@@ -10,6 +10,7 @@
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage[noend]{algorithmic}
+\usepackage{hyperref}
 
 \newenvironment{solution}
   {\renewcommand\qedsymbol{$\blacksquare$}\begin{proof}[Solución]}
@@ -44,7 +45,7 @@
 \begin{document}
 
 \maketitle
-\textit{repo : https://github.com/jorgemayna/ADA\_2020\_proyect}
+\textit{repo :\url{https://github.com/jorgemayna/ADA\_2020\_proyect}}
 \section{Introducción}
 Los 2 arreglos de 1s y 0s que recibimos los guardamos como strings y para hallar sus respectivos bloques usamos el siguiente algoritmo:\\
 \begin{algorithmic}[1]
@@ -118,13 +119,125 @@ Para resolver el problema de manera recursiva se optó por el siguiente algoritm
 \TITLE{\textsc{opt}$(i ,j)$}
     \IF{i = 0  \algcost{$.$}{$.$}}
         \STATE cont = SUM(B[i], 1 $\leq$ i $\leq$ j)
-        \STATE Return A[i]/cont
+        \STATE \textbf{Return} A[i]/cont
     \ENDIF
     \IF{j = 0}
         \STATE cont = SUM(A[i], 1 $\leq$ i $\leq$ i)
-        \STATE Return cont/[j]
+        \STATE \textbf{Return} cont/[j]
     \ENDIF
+    \STATE uno  = INF
+    \FOR{$z=1$ to $j-1$}
+        \STATE cont = SUM(B[x], z+1 $\leq$ x $\leq$ j)
+        \STATE temp = OPT($i-1,z$) + A[i] / cont
+        \IF{temp $<$ uno}
+            \STATE uno = temp
+        \ENDIF
+    \ENDFOR
+    \STATE dos = INF
+    \FOR{$z=1$ to $i-2$}
+        \STATE cont = SUM(A[x], z+1 $\leq$ x $\leq$ i)
+        \STATE temp = OPT($z,j-1$) + cont / B[j]
+        \IF{temp $<$ dos}
+            \STATE dos = temp
+        \ENDIF
+    \ENDFOR
+    \IF{uno$\leq$dos}
+        \STATE \textbf{Return} uno
+    \ENDIF
+    \STATE \textbf{Return} dos
 \end{algorithmic}
+En el algoritmo se han juntado las parte "uno" y "dos", presentadas en la recurrencia, en "uno" y la parte "tres" en una parte "dos". Además, se esta suponiendo que el tamaño de A[] es mayor que el tamaño de B[] y que un bloque cualquiera se puede dividir infinitamente. Todas estas consideraciones son resueltas en el código en c++. También se ha suprimido del pseudocódigo las partes del código que se encargaban de guardar el matching en si mismo.
+
 \section{Algoritmo memoizado}
 Para realizar el memoizado lo único que se agrego fue una matriz $n x m$ que guardaba los OPT ya calculados para usarlos posteriormente si se necesitaba.
+
+\begin{algorithmic}[1]
+\TITLE{\textsc{opt\_m}$(i ,j)$}
+    \IF{i = 0  \algcost{$.$}{$.$}}
+        \STATE cont = SUM(B[i], 1 $\leq$ i $\leq$ j)
+        \STATE memo[i][j] = A[i]/cont
+        \STATE \textbf{Return} A[i]/cont
+    \ENDIF
+    \IF{j = 0}
+        \STATE cont = SUM(A[i], 1 $\leq$ i $\leq$ i)
+        \STATE memo[i][j] = cont/[j]
+        \STATE \textbf{Return} cont/[j]
+    \ENDIF
+    \STATE
+    \STATE uno  = INF
+    \FOR{$z=1$ to $j-1$}
+        \STATE cont = SUM(B[x], z+1 $\leq$ x $\leq$ j)
+        \IF{memo[i-1][z] existe}
+            opt = memo[i-1][z]
+        \ELSE
+            opt = OPT\_m($i-1,z$)
+        \ENDIF 
+        \STATE temp = opt + A[i] / cont
+        \IF{temp $<$ uno}
+            \STATE uno = temp
+        \ENDIF
+    \ENDFOR
+    \STATE
+    \STATE dos = INF
+    \FOR{$z=1$ to $i-2$}
+        \STATE cont = SUM(A[x], z+1 $\leq$ x $\leq$ i)
+        \IF{memo[z][j-1] existe}
+            opt = memo[z][j-1]
+        \ELSE
+            opt = OPT\_m($z,j-1$)
+        \ENDIF
+        \STATE temp = opt + cont / B[j]
+        \IF{temp $<$ dos}
+            \STATE dos = temp
+        \ENDIF
+    \ENDFOR
+    \IF{uno$\leq$dos}
+        \STATE memo[i][j] = uno
+        \STATE \textbf{Return} uno
+    \ELSE
+        \STATE memo[i][j] = dos
+        \STATE \textbf{Return} dos
+    \ENDIF
+\end{algorithmic}
+\section{Algoritmo programación dinámica}
+Para el algoritmo de programación dinámica se tuvo que adaptar unas pocas cosas para que ya no funcione de manera recursiva.
+\begin{algorithmic}[1]
+\TITLE{\textsc{p\_dinámica}$(Bloques A ,BLoques B)$}
+\algcost{\textit{cost}}{\textit{times}}
+    \FOR{$i=1$ to A.size  \algcost{$.$}{$.$}}
+        \STATE cont = SUM(A[z],$1\leq z \leq i$) \algcost{$.$}{$.$}
+        \STATE optimos[i][0] = cont / B[0] \algcost{$.$}{$.$}
+    \ENDFOR
+    \FOR{$i=1$ to B.size  \algcost{$.$}{$.$}}
+        \STATE cont = SUM(B[z],$1\leq z \leq i$) \algcost{$.$}{$.$}
+        \STATE optimos[0][i] =  A[0] / cont \algcost{$.$}{$.$}
+    \ENDFOR
+    \STATE
+    \FOR{$j=2$ to B.size}
+        \FOR{$i=2$ to A.size}
+            \STATE uno  = INF
+            \FOR{$z=1$ to $j-1$}
+                \STATE cont = SUM(B[x], z+1 $\leq$ x $\leq$ j)
+                \STATE temp = optimos[$i-1$][z] + A[i] / cont
+                \IF{temp $<$ uno}
+                    \STATE uno = temp
+                \ENDIF
+            \ENDFOR
+            \STATE dos = INF
+            \FOR{$z=1$ to $i-2$}
+                \STATE cont = SUM(A[x], z+1 $\leq$ x $\leq$ i)
+                \STATE temp = optimos[z][$j-1$] + cont / B[j]
+                \IF{temp $<$ dos}
+                    \STATE dos = temp
+                \ENDIF
+            \ENDFOR
+            \IF{uno$\leq$dos}
+                \STATE optimos[i][j] = uno
+            \ELSE
+                \STATE optimos[i][j] = dos
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \STATE \textbf{Return} optimos[A.size][B.size]
+\end{algorithmic}
 \end{document}

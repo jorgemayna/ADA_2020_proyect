@@ -184,10 +184,8 @@ double opt_m(int i, int j,vector<pair<pair<int,int>,int >> *A,vector<pair<pair<i
     }
     double opt; 
     if((*memo)[i-1][z]!= -1){
-      opt = (*memo)[i-1][z];
-      cout <<"memo"<<endl;
-    }else{
-      cout <<"nomemo"<<endl;
+      opt = (*memo)[i-1][z];      
+    }else{      
       opt =  opt_m(i-1,z,A,B,ma_vec,memo);      
     }    
     temp = opt + ((double)(*A)[i].second / temp);    
@@ -209,10 +207,8 @@ double opt_m(int i, int j,vector<pair<pair<int,int>,int >> *A,vector<pair<pair<i
     }
     double opt; 
     if((*memo)[z][j-1]!= -1){
-      opt = (*memo)[z][j-1];
-      cout <<"memo"<<endl;
-    }else{
-      cout <<"nomemo"<<endl;
+      opt = (*memo)[z][j-1];      
+    }else{      
       opt =  opt_m(z,j-1,A,B,ma_vec,memo);      
     }    
     temp = opt + (temp / (double)(*B)[j].second);
